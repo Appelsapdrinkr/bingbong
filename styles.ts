@@ -1,0 +1,155 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0B1A32",
+    paddingTop: 50,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#F8F8F8",
+    marginBottom: 16,
+  },
+  panel: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#122847",
+  },
+  panelRow: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    marginBottom: 12,
+  },
+  panelText: {
+    color: "#F8F8F8",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  statusText: {
+    color: "#FFD700",
+  },
+  actionButton: {
+    backgroundColor: "#3C86F0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 8,
+    minWidth: 110,
+    alignItems: "center",
+  },
+  startButton: {
+    marginTop: 10,
+    backgroundColor: "#54B7E5",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  editorInfo: {
+    width: "90%",
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#122847",
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  levelNameInput: {
+    width: "100%",
+    backgroundColor: "#213B66",
+    color: "#F8F8F8",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 8,
+    fontSize: 16,
+  },
+  resetText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  board: {
+    width: "90%",
+    aspectRatio: 1,
+    borderRadius: 16,
+    backgroundColor: "#0A1630",
+    padding: 6,
+  },
+  row: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  cell: {
+    flex: 1,
+    margin: 2,
+    borderRadius: 6,
+    backgroundColor: "#213B66",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 30,
+    minHeight: 30,
+  },
+  cellRevealed: {
+    backgroundColor: "#D6DCE5",
+  },
+  cellFlagged: {
+    backgroundColor: "#F08B3A",
+  },
+  cellMine: {
+    backgroundColor: "#D14343",
+  },
+  cellDesignMine: {
+    backgroundColor: "#4A6FB8",
+  },
+  cellText: {
+    color: "#F8F8F8",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  cellTextEditor: {
+    color: "#FFFFFF",
+  },
+  cellTextRevealed: {
+    color: "#1B2438",
+  },
+  hint: {
+    marginTop: 14,
+    color: "#B8C7E0",
+    fontSize: 14,
+  },
+  levelItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    width: "100%",
+  },
+  levelButton: {
+    flex: 1,
+    backgroundColor: "#3C86F0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginRight: 10,
+    minHeight: 44,
+  },
+  deleteButton: {
+    backgroundColor: "#D14343",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  levelList: {
+    width: "90%",
+    maxHeight: 300,
+    marginVertical: 10,
+  },
+});
