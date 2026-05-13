@@ -53,6 +53,16 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
     fontSize: 13,
   },
+  authSwitchButton: {
+    alignItems: "center",
+    marginTop: 12,
+    paddingVertical: 8,
+  },
+  authSwitchText: {
+    color: "#B8D6FF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   container: {
     flex: 1,
     backgroundColor: "#0B1A32",

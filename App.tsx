@@ -5,6 +5,7 @@ import { Board } from "./components/Board";
 import { ControlPanel } from "./components/ControlPanel";
 import { LevelSelector } from "./components/LevelSelector";
 import { LoginScreen } from "./components/LoginScreen";
+import { RegisterScreen } from "./components/RegisterScreen";
 import { styles } from "./styles";
 import { Cell, GameStatus } from "./minesweeper.types";
 import {
@@ -19,9 +20,11 @@ import {
 } from "./minesweeper.utils";
 
 type AppMode = "game" | "editor" | "selector";
+type AuthScreen = "login" | "register";
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
   const [board, setBoard] = useState<Cell[][]>(() => generateBoard());
   const [status, setStatus] = useState<GameStatus>("playing");
   const [mode, setMode] = useState<AppMode>("game");
@@ -230,8 +233,27 @@ export default function App() {
     setMode("game");
   };
 
+  const handleRegister = () => {
+    setIsAuthenticated(true);
+    setMode("game");
+  };
+
   if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
+    if (authScreen === "register") {
+      return (
+        <RegisterScreen
+          onRegister={handleRegister}
+          onSwitchToLogin={() => setAuthScreen("login")}
+        />
+      );
+    }
+
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        onSwitchToRegister={() => setAuthScreen("register")}
+      />
+    );
   }
 
   if (mode === "selector") {

@@ -4,9 +4,13 @@ import { styles } from "../styles";
 
 type LoginScreenProps = {
   onLogin: () => void;
+  onSwitchToRegister: () => void;
 };
 
-export function LoginScreen({ onLogin }: Readonly<LoginScreenProps>) {
+export function LoginScreen({
+  onLogin,
+  onSwitchToRegister,
+}: Readonly<LoginScreenProps>) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,6 +52,10 @@ export function LoginScreen({ onLogin }: Readonly<LoginScreenProps>) {
 
         <Pressable style={styles.loginButton} onPress={handleSubmit}>
           <Text style={styles.loginButtonText}>Log in</Text>
+        </Pressable>
+
+        <Pressable style={styles.authSwitchButton} onPress={onSwitchToRegister}>
+          <Text style={styles.authSwitchText}>No account? Create one</Text>
         </Pressable>
       </View>
     </View>
