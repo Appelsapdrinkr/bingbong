@@ -43,6 +43,9 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
+  disabledButton: {
+    opacity: 0.6,
+  },
   loginButtonText: {
     color: "#FFFFFF",
     fontSize: 16,

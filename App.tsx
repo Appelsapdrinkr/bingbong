@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { Text, View, ScrollView } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
+import { Text, View, ScrollView, ActivityIndicator } from "react-native";
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Board } from "./components/Board";
 import { ControlPanel } from "./components/ControlPanel";
 import { LevelSelector } from "./components/LevelSelector";
 import { LoginScreen } from "./components/LoginScreen";
 import { RegisterScreen } from "./components/RegisterScreen";
+import { auth, db } from "./firebase";
 import { styles } from "./styles";
 import { Cell, GameStatus } from "./minesweeper.types";
 import {
@@ -23,6 +25,7 @@ type AppMode = "game" | "editor" | "selector";
 type AuthScreen = "login" | "register";
 
 export default function App() {
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
   const [board, setBoard] = useState<Cell[][]>(() => generateBoard());
@@ -35,6 +38,15 @@ export default function App() {
   const [boardCols, setBoardCols] = useState(DEFAULT_COLS);
 
   const mineCount = board.flat().filter((cell) => cell.isMine).length;
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(Boolean(user));
+      setIsAuthReady(true);
+    });
+
+    return unsubscribe;
+  }, []);
 
   const handleNewRandomGame = () => {
     setBoard(generateBoard(boardRows, boardCols));
@@ -108,21 +120,28 @@ export default function App() {
   };
 
   const handleSaveLevel = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("You need to be logged in to save levels.");
+      return;
+    }
+
     const name = levelName.trim() || `Level ${Date.now()}`;
+    const levelsCollection = collection(db, "users", user.uid, "levels");
+    const levelRef = doc(levelsCollection);
     const levelData = {
-      id: Date.now().toString(),
+      id: levelRef.id,
       name: name,
       rows: boardRows,
       cols: boardCols,
       board: board.map((row) => row.map((cell) => ({ ...cell }))),
+      updatedAt: serverTimestamp(),
     };
+
     try {
-      await AsyncStorage.setItem(
-        `level_${levelData.id}`,
-        JSON.stringify(levelData),
-      );
+      await setDoc(levelRef, levelData);
       alert("Level saved!");
-      setLevelName(""); // Clear the input after saving
+      setLevelName("");
     } catch (error) {
       console.error("Failed to save level:", error);
       alert("Failed to save level.");
@@ -228,15 +247,36 @@ export default function App() {
     statusText = "You win!";
   }
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    setMode("game");
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setMode("game");
+      return null;
+    } catch (error) {
+      console.error("Login failed", error);
+      return "Unable to log in with these credentials.";
+    }
   };
 
-  const handleRegister = () => {
-    setIsAuthenticated(true);
-    setMode("game");
+  const handleRegister = async (email: string, password: string) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      setMode("game");
+      return null;
+    } catch (error) {
+      console.error("Registration failed", error);
+      return "Unable to create account. Try a different email.";
+    }
   };
+
+  if (!isAuthReady) {
+    return (
+      <View style={styles.loginContainer}>
+        <ActivityIndicator size="large" color="#B8D6FF" />
+        <Text style={styles.loginSubtitle}>Loading your session...</Text>
+      </View>
+    );
+  }
 
   if (!isAuthenticated) {
     if (authScreen === "register") {

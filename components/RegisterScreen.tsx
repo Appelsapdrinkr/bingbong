@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable } from "react-native";
 import { styles } from "../styles";
 
 type RegisterScreenProps = {
-  onRegister: () => void;
+  onRegister: (email: string, password: string) => Promise<string | null>;
   onSwitchToLogin: () => void;
 };
 
@@ -11,13 +11,14 @@ export function RegisterScreen({
   onRegister,
   onSwitchToLogin,
 }: Readonly<RegisterScreenProps>) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = () => {
-    if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
+  const handleSubmit = async () => {
+    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
       setErrorMessage("Please complete all fields.");
       return;
     }
@@ -32,8 +33,15 @@ export function RegisterScreen({
       return;
     }
 
+    setIsSubmitting(true);
     setErrorMessage("");
-    onRegister();
+    const registerError = await onRegister(email.trim(), password);
+
+    if (registerError) {
+      setErrorMessage(registerError);
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -44,10 +52,11 @@ export function RegisterScreen({
 
         <TextInput
           style={styles.loginInput}
-          placeholder="Username"
+          placeholder="Email"
           placeholderTextColor="#A3B4D2"
-          value={username}
-          onChangeText={setUsername}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
           autoCapitalize="none"
         />
         <TextInput
@@ -69,8 +78,13 @@ export function RegisterScreen({
 
         {errorMessage ? <Text style={styles.loginError}>{errorMessage}</Text> : null}
 
-        <Pressable style={styles.loginButton} onPress={handleSubmit}>
-          <Text style={styles.loginButtonText}>Register</Text>
+        <Pressable
+          style={[styles.loginButton, isSubmitting && styles.disabledButton]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}>
+          <Text style={styles.loginButtonText}>
+            {isSubmitting ? "Creating account..." : "Register"}
+          </Text>
         </Pressable>
 
         <Pressable style={styles.authSwitchButton} onPress={onSwitchToLogin}>

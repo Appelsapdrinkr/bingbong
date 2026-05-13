@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
 import { View, Text, Pressable, FlatList, Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { styles } from "../styles";
 import { Cell } from "../minesweeper.types";
+import { auth, db } from "../firebase";
 
-type LevelSelectorProps = {
+type LevelSelectorProps = Readonly<{
   onSelectLevel: (board: Cell[][] | null) => void;
   onBack: () => void;
-};
+}>;
 
 type SavedLevel = {
   id: string;
@@ -21,33 +29,44 @@ export function LevelSelector({ onSelectLevel, onBack }: LevelSelectorProps) {
   const [savedLevels, setSavedLevels] = useState<SavedLevel[]>([]);
 
   useEffect(() => {
-    loadSavedLevels();
+    const user = auth.currentUser;
+    if (!user) {
+      setSavedLevels([]);
+      return;
+    }
+
+    const levelsRef = collection(db, "users", user.uid, "levels");
+    const levelsQuery = query(levelsRef, orderBy("name", "asc"));
+
+    const unsubscribe = onSnapshot(
+      levelsQuery,
+      (snapshot) => {
+        const levels = snapshot.docs.map((levelDoc) => {
+          const data = levelDoc.data() as Omit<SavedLevel, "id">;
+          return {
+            id: levelDoc.id,
+            ...data,
+          };
+        });
+        setSavedLevels(levels);
+      },
+      (error) => {
+        console.error("Failed to load levels:", error);
+      },
+    );
+
+    return unsubscribe;
   }, []);
 
-  const loadSavedLevels = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const levelKeys = keys.filter((key) => key.startsWith("level_"));
-      const levels: SavedLevel[] = [];
-      for (const key of levelKeys) {
-        const data = await AsyncStorage.getItem(key);
-        if (data) {
-          const level = JSON.parse(data);
-          levels.push(level);
-        }
-      }
-      // Sort levels by name alphabetically
-      levels.sort((a, b) => a.name.localeCompare(b.name));
-      setSavedLevels(levels);
-    } catch (error) {
-      console.error("Failed to load levels:", error);
-    }
-  };
-
   const deleteLevel = async (id: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Login required", "You must be logged in to delete levels.");
+      return;
+    }
+
     try {
-      await AsyncStorage.removeItem(`level_${id}`);
-      setSavedLevels((prev) => prev.filter((level) => level.id !== id));
+      await deleteDoc(doc(db, "users", user.uid, "levels", id));
     } catch (error) {
       console.error("Failed to delete level:", error);
     }

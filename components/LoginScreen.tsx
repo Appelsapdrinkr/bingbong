@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable } from "react-native";
 import { styles } from "../styles";
 
 type LoginScreenProps = {
-  onLogin: () => void;
+  onLogin: (email: string, password: string) => Promise<string | null>;
   onSwitchToRegister: () => void;
 };
 
@@ -11,18 +11,26 @@ export function LoginScreen({
   onLogin,
   onSwitchToRegister,
 }: Readonly<LoginScreenProps>) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = () => {
-    if (!username.trim() || !password.trim()) {
-      setErrorMessage("Please enter both username and password.");
+  const handleSubmit = async () => {
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage("Please enter both email and password.");
       return;
     }
 
+    setIsSubmitting(true);
     setErrorMessage("");
-    onLogin();
+    const loginError = await onLogin(email.trim(), password);
+
+    if (loginError) {
+      setErrorMessage(loginError);
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -33,10 +41,11 @@ export function LoginScreen({
 
         <TextInput
           style={styles.loginInput}
-          placeholder="Username"
+          placeholder="Email"
           placeholderTextColor="#A3B4D2"
-          value={username}
-          onChangeText={setUsername}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
           autoCapitalize="none"
         />
         <TextInput
@@ -50,8 +59,13 @@ export function LoginScreen({
 
         {errorMessage ? <Text style={styles.loginError}>{errorMessage}</Text> : null}
 
-        <Pressable style={styles.loginButton} onPress={handleSubmit}>
-          <Text style={styles.loginButtonText}>Log in</Text>
+        <Pressable
+          style={[styles.loginButton, isSubmitting && styles.disabledButton]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}>
+          <Text style={styles.loginButtonText}>
+            {isSubmitting ? "Logging in..." : "Log in"}
+          </Text>
         </Pressable>
 
         <Pressable style={styles.authSwitchButton} onPress={onSwitchToRegister}>
