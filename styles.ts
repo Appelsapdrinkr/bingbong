@@ -1,6 +1,58 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  loginContainer: {
+    flex: 1,
+    backgroundColor: "#081226",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  loginCard: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#122847",
+    borderRadius: 18,
+    padding: 22,
+  },
+  loginTitle: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: "#F8F8F8",
+    marginBottom: 8,
+  },
+  loginSubtitle: {
+    color: "#B8C7E0",
+    fontSize: 15,
+    marginBottom: 16,
+  },
+  loginInput: {
+    width: "100%",
+    backgroundColor: "#213B66",
+    color: "#F8F8F8",
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    borderRadius: 10,
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  loginButton: {
+    backgroundColor: "#3C86F0",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  loginButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  loginError: {
+    color: "#FFD4D4",
+    marginBottom: 10,
+    fontSize: 13,
+  },
   container: {
     flex: 1,
     backgroundColor: "#0B1A32",

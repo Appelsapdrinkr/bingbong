@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Board } from "./components/Board";
 import { ControlPanel } from "./components/ControlPanel";
 import { LevelSelector } from "./components/LevelSelector";
+import { LoginScreen } from "./components/LoginScreen";
 import { styles } from "./styles";
 import { Cell, GameStatus } from "./minesweeper.types";
 import {
@@ -20,6 +21,7 @@ import {
 type AppMode = "game" | "editor" | "selector";
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [board, setBoard] = useState<Cell[][]>(() => generateBoard());
   const [status, setStatus] = useState<GameStatus>("playing");
   const [mode, setMode] = useState<AppMode>("game");
@@ -213,13 +215,24 @@ export default function App() {
     });
   };
 
-  const statusText = editorMode
-    ? "Design mode"
-    : status === "playing"
-      ? "Keep going"
-      : status === "won"
-        ? "You win!"
-        : "Game over";
+  let statusText = "Game over";
+
+  if (editorMode) {
+    statusText = "Design mode";
+  } else if (status === "playing") {
+    statusText = "Keep going";
+  } else if (status === "won") {
+    statusText = "You win!";
+  }
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setMode("game");
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
 
   if (mode === "selector") {
     return (
