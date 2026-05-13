@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Text, View, ScrollView, ActivityIndicator } from "react-native";
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { Board } from "./components/Board";
 import { ControlPanel } from "./components/ControlPanel";
@@ -23,6 +28,61 @@ import {
 
 type AppMode = "game" | "editor" | "selector";
 type AuthScreen = "login" | "register";
+
+const getAuthErrorMessage = (error: unknown, mode: "login" | "register") => {
+  const fallback =
+    mode === "login"
+      ? "Unable to log in with these credentials."
+      : "Unable to create account right now.";
+
+  const errorCode =
+    typeof error === "object" && error !== null && "code" in error
+      ? String(error.code)
+      : "";
+  const errorMessage =
+    typeof error === "object" && error !== null && "message" in error
+      ? String(error.message)
+      : "";
+
+  switch (errorCode) {
+    case "auth/email-already-in-use":
+      return "This email is already in use. Try logging in instead.";
+    case "auth/invalid-email":
+      return "That email address looks invalid.";
+    case "auth/weak-password":
+      return "Password is too weak. Use at least 6 characters.";
+    case "auth/invalid-credential":
+      return "Email or password is incorrect.";
+    case "auth/user-not-found":
+      return "No account found for this email.";
+    case "auth/wrong-password":
+      return "Email or password is incorrect.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Wait a moment and try again.";
+    case "auth/network-request-failed":
+      return "Network error. Check your internet and try again.";
+    case "auth/operation-not-allowed":
+      return "Email/password sign-in is not enabled in Firebase Authentication settings.";
+    case "auth/api-key-not-valid":
+      return "Firebase API key is invalid. Re-check your EXPO_PUBLIC_FIREBASE_API_KEY value.";
+    case "auth/invalid-api-key":
+      return "Firebase API key is invalid. Re-check your EXPO_PUBLIC_FIREBASE_API_KEY value.";
+    case "auth/missing-password":
+      return "Please enter a password.";
+    case "auth/missing-email":
+      return "Please enter an email address.";
+    case "auth/configuration-not-found":
+      return "Authentication is not configured for this Firebase project. Enable Email/Password in Authentication > Sign-in method.";
+    default:
+      if (errorCode) {
+        return `${fallback} (Firebase: ${errorCode})`;
+      }
+      if (errorMessage) {
+        return `${fallback} (${errorMessage})`;
+      }
+      return fallback;
+  }
+};
 
 export default function App() {
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -254,7 +314,7 @@ export default function App() {
       return null;
     } catch (error) {
       console.error("Login failed", error);
-      return "Unable to log in with these credentials.";
+      return getAuthErrorMessage(error, "login");
     }
   };
 
@@ -265,7 +325,25 @@ export default function App() {
       return null;
     } catch (error) {
       console.error("Registration failed", error);
-      return "Unable to create account. Try a different email.";
+      return getAuthErrorMessage(error, "register");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setAuthScreen("login");
+      setMode("game");
+      setEditorMode(false);
+      setStatus("playing");
+      setBoardRows(DEFAULT_ROWS);
+      setBoardCols(DEFAULT_COLS);
+      setBoard(generateBoard(DEFAULT_ROWS, DEFAULT_COLS));
+      setLevelName("");
+      setEditorTool("mine");
+    } catch (error) {
+      console.error("Logout failed", error);
+      alert("Failed to log out. Please try again.");
     }
   };
 
@@ -331,6 +409,7 @@ export default function App() {
           onStartWithDesign={handleStartWithDesign}
           onSaveLevel={handleSaveLevel}
           onLoadLevels={handleLoadLevels}
+          onLogout={handleLogout}
         />
         <Board
           board={board}

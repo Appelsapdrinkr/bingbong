@@ -113,6 +113,15 @@ export const styles = StyleSheet.create({
     minWidth: 110,
     alignItems: "center",
   },
+  logoutButton: {
+    backgroundColor: "#D14343",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 8,
+    minWidth: 110,
+    alignItems: "center",
+  },
   startButton: {
     marginTop: 10,
     backgroundColor: "#54B7E5",

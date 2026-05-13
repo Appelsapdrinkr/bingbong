@@ -21,6 +21,7 @@ type ControlPanelProps = {
   onStartWithDesign: () => void;
   onSaveLevel: () => void;
   onLoadLevels: () => void;
+  onLogout: () => void;
 };
 
 export function ControlPanel({
@@ -43,6 +44,7 @@ export function ControlPanel({
   onStartWithDesign,
   onSaveLevel,
   onLoadLevels,
+  onLogout,
 }: ControlPanelProps) {
   return (
     <>
@@ -74,6 +76,9 @@ export function ControlPanel({
       <View style={styles.panelRow}>
         <Pressable style={styles.actionButton} onPress={onLoadLevels}>
           <Text style={styles.resetText}>Load levels</Text>
+        </Pressable>
+        <Pressable style={styles.logoutButton} onPress={onLogout}>
+          <Text style={styles.resetText}>Log out</Text>
         </Pressable>
         {editorMode && (
           <Pressable style={styles.actionButton} onPress={onSaveLevel}>
