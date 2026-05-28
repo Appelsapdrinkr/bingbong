@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Modal,
+  Pressable,
 } from "react-native";
 import {
   createUserWithEmailAndPassword,
@@ -113,6 +115,7 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>("game");
   const [editorMode, setEditorMode] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
   const [levelName, setLevelName] = useState("");
   const [editorTool, setEditorTool] = useState<"mine" | "reveal">("mine");
   const [boardRows, setBoardRows] = useState(DEFAULT_ROWS);
@@ -176,7 +179,7 @@ export default function App() {
   };
 
   const handleIncreaseRows = () => {
-    if (boardRows < 16) {
+    if (boardRows < 12) {
       const newRows = boardRows + 1;
       setBoardRows(newRows);
       setBoard(createEmptyBoard(newRows, boardCols));
@@ -192,7 +195,7 @@ export default function App() {
   };
 
   const handleIncreaseCols = () => {
-    if (boardCols < 16) {
+    if (boardCols < 12) {
       const newCols = boardCols + 1;
       setBoardCols(newCols);
       setBoard(createEmptyBoard(boardRows, newCols));
@@ -375,6 +378,7 @@ export default function App() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       setMode("game");
+      setShowTutorialModal(true);
       return null;
     } catch (error) {
       console.error("Registration failed", error);
@@ -389,6 +393,7 @@ export default function App() {
       setMode("game");
       setEditorMode(false);
       setIsFocusMode(false);
+      setShowTutorialModal(false);
       setStatus("playing");
       setBoardRows(DEFAULT_ROWS);
       setBoardCols(DEFAULT_COLS);
@@ -480,6 +485,8 @@ export default function App() {
           <Board
             board={board}
             editorMode={editorMode}
+            isFocusMode={isFocusMode && !editorMode}
+            containerStyle={isFocusMode && !editorMode ? styles.focusModeBoard : undefined}
             onCellPress={(row, col) =>
               editorMode ? handleToggleMine(row, col) : handleReveal(row, col)
             }
@@ -502,6 +509,34 @@ export default function App() {
       <Animated.View style={[styles.appFadeLayer, { opacity: appOpacity }]}>
         {appContent}
       </Animated.View>
+      <Modal
+        animationType="fade"
+        transparent
+        visible={showTutorialModal}
+        onRequestClose={() => setShowTutorialModal(false)}>
+        <View style={styles.tutorialOverlay}>
+          <View style={styles.tutorialCard}>
+            <Text style={styles.tutorialTitle}>Quick start</Text>
+            <Text style={styles.tutorialText}>
+              Reveal all safe cells without hitting a mine.
+            </Text>
+            <Text style={styles.tutorialText}>
+              Numbers show how many mines touch that cell.
+            </Text>
+            <Text style={styles.tutorialText}>
+              Tap a cell to reveal it. Long press to place or remove a flag.
+            </Text>
+            <Text style={styles.tutorialText}>
+              Use Focus mode when you want only the board, mine count, and exit button.
+            </Text>
+            <Pressable
+              style={styles.tutorialButton}
+              onPress={() => setShowTutorialModal(false)}>
+              <Text style={styles.tutorialButtonText}>Start playing</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       {showSplash ? <SplashScreen opacity={splashOpacity} /> : null}
     </View>
   );

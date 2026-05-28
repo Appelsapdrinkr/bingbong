@@ -1,22 +1,26 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, StyleProp, ViewStyle } from "react-native";
 import { Cell } from "../minesweeper.types";
 import { styles } from "../styles";
 
 type BoardProps = {
   board: Cell[][];
   editorMode: boolean;
+  isFocusMode?: boolean;
   onCellPress: (row: number, col: number) => void;
   onCellLongPress: (row: number, col: number) => void;
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 export function Board({
   board,
   editorMode,
+  isFocusMode = false,
   onCellPress,
   onCellLongPress,
-}: BoardProps) {
+  containerStyle,
+}: Readonly<BoardProps>) {
   return (
-    <View style={styles.board}>
+    <View style={[styles.board, containerStyle]}>
       {board.map((rowCells, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.row}>
           {rowCells.map((cell) => {
@@ -38,6 +42,7 @@ export function Board({
                 key={`${cell.row}-${cell.col}`}
                 style={[
                   styles.cell,
+                  isFocusMode && styles.focusModeCell,
                   cell.isRevealed && styles.cellRevealed,
                   editorMode && cell.isMine && styles.cellDesignMine,
                   showFlag && styles.cellFlagged,

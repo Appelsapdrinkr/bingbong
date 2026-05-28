@@ -8,6 +8,45 @@ export const styles = StyleSheet.create({
   appFadeLayer: {
     flex: 1,
   },
+  tutorialOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(5, 12, 27, 0.72)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  tutorialCard: {
+    width: "100%",
+    maxWidth: 460,
+    backgroundColor: "#122847",
+    borderRadius: 18,
+    paddingVertical: 22,
+    paddingHorizontal: 18,
+  },
+  tutorialTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#F8F8F8",
+    marginBottom: 10,
+  },
+  tutorialText: {
+    color: "#D3DEF3",
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  tutorialButton: {
+    marginTop: 10,
+    backgroundColor: "#54B7E5",
+    paddingVertical: 11,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  tutorialButtonText: {
+    color: "#0B1A32",
+    fontWeight: "800",
+    fontSize: 15,
+  },
   splashContainer: {
     position: "absolute",
     top: 0,
@@ -255,6 +294,10 @@ export const styles = StyleSheet.create({
     backgroundColor: "#0A1630",
     padding: 6,
   },
+  focusModeBoard: {
+    width: "98%",
+    padding: 3,
+  },
   row: {
     flex: 1,
     flexDirection: "row",
@@ -266,6 +309,10 @@ export const styles = StyleSheet.create({
     backgroundColor: "#213B66",
     alignItems: "center",
     justifyContent: "center",
+  },
+  focusModeCell: {
+    margin: 1,
+    borderRadius: 5,
   },
   cellRevealed: {
     backgroundColor: "#D6DCE5",
