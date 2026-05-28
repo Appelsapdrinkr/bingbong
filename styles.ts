@@ -1,6 +1,45 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  appRoot: {
+    flex: 1,
+    backgroundColor: "#081226",
+  },
+  appFadeLayer: {
+    flex: 1,
+  },
+  splashContainer: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: "#081226",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    zIndex: 10,
+  },
+  splashCard: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: "#122847",
+    borderRadius: 18,
+    paddingVertical: 28,
+    paddingHorizontal: 22,
+    alignItems: "center",
+  },
+  splashTitle: {
+    fontSize: 36,
+    fontWeight: "800",
+    color: "#F8F8F8",
+    marginBottom: 6,
+  },
+  splashSubtitle: {
+    color: "#B8C7E0",
+    fontSize: 15,
+    marginBottom: 16,
+  },
   loginContainer: {
     flex: 1,
     backgroundColor: "#081226",
@@ -35,6 +74,26 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     fontSize: 16,
+  },
+  passwordRow: {
+    width: "100%",
+    position: "relative",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  passwordInput: {
+    marginBottom: 0,
+    paddingRight: 46,
+  },
+  passwordToggleButton: {
+    position: "absolute",
+    right: 10,
+    top: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
   },
   loginButton: {
     backgroundColor: "#3C86F0",
@@ -71,6 +130,44 @@ export const styles = StyleSheet.create({
     backgroundColor: "#0B1A32",
     paddingTop: 50,
     alignItems: "center",
+  },
+  focusModeContainer: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  focusModeHeader: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  focusModeStatus: {
+    color: "#B8C7E0",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  focusModeExit: {
+    color: "#B8D6FF",
+    fontSize: 14,
+    fontWeight: "700",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#1A345D",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  focusBoardWrap: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
   },
   title: {
     fontSize: 32,
@@ -169,8 +266,6 @@ export const styles = StyleSheet.create({
     backgroundColor: "#213B66",
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 30,
-    minHeight: 30,
   },
   cellRevealed: {
     backgroundColor: "#D6DCE5",

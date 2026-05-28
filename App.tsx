@@ -1,5 +1,12 @@
-import { useEffect, useState } from "react";
-import { Text, View, ScrollView, ActivityIndicator } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Text,
+  View,
+  ScrollView,
+  ActivityIndicator,
+  Animated,
+  Easing,
+} from "react-native";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -84,7 +91,20 @@ const getAuthErrorMessage = (error: unknown, mode: "login" | "register") => {
   }
 };
 
+const SplashScreen = ({ opacity }: { opacity: Animated.Value }) => (
+  <Animated.View style={[styles.splashContainer, { opacity }]}>
+    <View style={styles.splashCard}>
+      <Text style={styles.splashTitle}>Minesweeper</Text>
+      <Text style={styles.splashSubtitle}>Booting up your board...</Text>
+      <ActivityIndicator size="large" color="#B8D6FF" />
+    </View>
+  </Animated.View>
+);
+
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const appOpacity = useRef(new Animated.Value(0)).current;
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
@@ -92,12 +112,38 @@ export default function App() {
   const [status, setStatus] = useState<GameStatus>("playing");
   const [mode, setMode] = useState<AppMode>("game");
   const [editorMode, setEditorMode] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   const [levelName, setLevelName] = useState("");
   const [editorTool, setEditorTool] = useState<"mine" | "reveal">("mine");
   const [boardRows, setBoardRows] = useState(DEFAULT_ROWS);
   const [boardCols, setBoardCols] = useState(DEFAULT_COLS);
 
   const mineCount = board.flat().filter((cell) => cell.isMine).length;
+
+  useEffect(() => {
+    const holdTimer = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(splashOpacity, {
+          toValue: 0,
+          duration: 450,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(appOpacity, {
+          toValue: 1,
+          duration: 450,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start(() => setShowSplash(false));
+    }, 1200);
+
+    return () => {
+      clearTimeout(holdTimer);
+      splashOpacity.stopAnimation();
+      appOpacity.stopAnimation();
+    };
+  }, [appOpacity, splashOpacity]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -113,6 +159,7 @@ export default function App() {
     setStatus("playing");
     setMode("game");
     setEditorMode(false);
+    setIsFocusMode(false);
     setLevelName("");
   };
 
@@ -121,6 +168,7 @@ export default function App() {
     setStatus("playing");
     setMode("editor");
     setEditorMode(true);
+    setIsFocusMode(false);
     setEditorTool("mine");
   };
   const handleToggleEditorTool = () => {
@@ -164,6 +212,7 @@ export default function App() {
     setStatus("playing");
     setBoard((currentBoard) => resetBoardState(currentBoard));
     setMode(nextMode ? "editor" : "game");
+    setIsFocusMode(false);
     if (!nextMode) {
       setLevelName("");
     }
@@ -177,6 +226,7 @@ export default function App() {
     setStatus("playing");
     setMode("game");
     setEditorMode(false);
+    setIsFocusMode(false);
   };
 
   const handleSaveLevel = async () => {
@@ -209,6 +259,7 @@ export default function App() {
   };
 
   const handleLoadLevels = () => {
+    setIsFocusMode(false);
     setMode("selector");
   };
 
@@ -223,9 +274,11 @@ export default function App() {
     setStatus("playing");
     setMode("game");
     setEditorMode(false);
+    setIsFocusMode(false);
   };
 
   const handleBackToGame = () => {
+    setIsFocusMode(false);
     setMode("game");
   };
 
@@ -335,6 +388,7 @@ export default function App() {
       setAuthScreen("login");
       setMode("game");
       setEditorMode(false);
+      setIsFocusMode(false);
       setStatus("playing");
       setBoardRows(DEFAULT_ROWS);
       setBoardCols(DEFAULT_COLS);
@@ -347,84 +401,108 @@ export default function App() {
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <View style={styles.loginContainer}>
-        <ActivityIndicator size="large" color="#B8D6FF" />
-        <Text style={styles.loginSubtitle}>Loading your session...</Text>
-      </View>
-    );
-  }
-
-  if (!isAuthenticated) {
-    if (authScreen === "register") {
+  const appContent = (() => {
+    if (!isAuthReady) {
       return (
-        <RegisterScreen
-          onRegister={handleRegister}
-          onSwitchToLogin={() => setAuthScreen("login")}
+        <View style={styles.loginContainer}>
+          <ActivityIndicator size="large" color="#B8D6FF" />
+          <Text style={styles.loginSubtitle}>Loading your session...</Text>
+        </View>
+      );
+    }
+
+    if (!isAuthenticated) {
+      if (authScreen === "register") {
+        return (
+          <RegisterScreen
+            onRegister={handleRegister}
+            onSwitchToLogin={() => setAuthScreen("login")}
+          />
+        );
+      }
+
+      return (
+        <LoginScreen
+          onLogin={handleLogin}
+          onSwitchToRegister={() => setAuthScreen("register")}
+        />
+      );
+    }
+
+    if (mode === "selector") {
+      return (
+        <LevelSelector
+          onSelectLevel={handleSelectLevel}
+          onBack={handleBackToGame}
         />
       );
     }
 
     return (
-      <LoginScreen
-        onLogin={handleLogin}
-        onSwitchToRegister={() => setAuthScreen("register")}
-      />
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={{ alignItems: "center", paddingBottom: 20 }}
+          showsVerticalScrollIndicator={true}>
+          <Text style={styles.title}>Minesweeper</Text>
+          {isFocusMode && !editorMode ? (
+            <View style={styles.panel}>
+              <Text style={styles.panelText}>Mines: {mineCount}</Text>
+              <Text style={styles.focusModeExit} onPress={() => setIsFocusMode(false)}>
+                Exit focus
+              </Text>
+            </View>
+          ) : (
+            <ControlPanel
+              mineCount={mineCount}
+              statusText={statusText}
+              editorMode={editorMode}
+              isFocusMode={isFocusMode}
+              levelName={levelName}
+              editorTool={editorTool}
+              boardRows={boardRows}
+              boardCols={boardCols}
+              onLevelNameChange={setLevelName}
+              onNewRandomGame={handleNewRandomGame}
+              onToggleEditor={handleToggleEditor}
+              onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
+              onToggleEditorTool={handleToggleEditorTool}
+              onIncreaseRows={handleIncreaseRows}
+              onDecreaseRows={handleDecreaseRows}
+              onIncreaseCols={handleIncreaseCols}
+              onDecreaseCols={handleDecreaseCols}
+              onClearDesign={handleClearDesign}
+              onStartWithDesign={handleStartWithDesign}
+              onSaveLevel={handleSaveLevel}
+              onLoadLevels={handleLoadLevels}
+              onLogout={handleLogout}
+            />
+          )}
+          <Board
+            board={board}
+            editorMode={editorMode}
+            onCellPress={(row, col) =>
+              editorMode ? handleToggleMine(row, col) : handleReveal(row, col)
+            }
+            onCellLongPress={(row, col) => handleFlag(row, col)}
+          />
+          {!isFocusMode ? (
+            <Text style={styles.hint}>
+              {editorMode
+                ? "Design your level, then press Start game with design."
+                : "Tap to reveal, long press to flag."}
+            </Text>
+          ) : null}
+        </ScrollView>
+      </View>
     );
-  }
-
-  if (mode === "selector") {
-    return (
-      <LevelSelector
-        onSelectLevel={handleSelectLevel}
-        onBack={handleBackToGame}
-      />
-    );
-  }
+  })();
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={{ alignItems: "center", paddingBottom: 20 }}
-        showsVerticalScrollIndicator={true}>
-        <Text style={styles.title}>Minesweeper</Text>
-        <ControlPanel
-          mineCount={mineCount}
-          statusText={statusText}
-          editorMode={editorMode}
-          levelName={levelName}
-          editorTool={editorTool}
-          boardRows={boardRows}
-          boardCols={boardCols}
-          onLevelNameChange={setLevelName}
-          onNewRandomGame={handleNewRandomGame}
-          onToggleEditor={handleToggleEditor}
-          onToggleEditorTool={handleToggleEditorTool}
-          onIncreaseRows={handleIncreaseRows}
-          onDecreaseRows={handleDecreaseRows}
-          onIncreaseCols={handleIncreaseCols}
-          onDecreaseCols={handleDecreaseCols}
-          onClearDesign={handleClearDesign}
-          onStartWithDesign={handleStartWithDesign}
-          onSaveLevel={handleSaveLevel}
-          onLoadLevels={handleLoadLevels}
-          onLogout={handleLogout}
-        />
-        <Board
-          board={board}
-          editorMode={editorMode}
-          onCellPress={(row, col) =>
-            editorMode ? handleToggleMine(row, col) : handleReveal(row, col)
-          }
-          onCellLongPress={(row, col) => handleFlag(row, col)}
-        />
-        <Text style={styles.hint}>
-          {editorMode
-            ? "Design your level, then press Start game with design."
-            : "Tap to reveal, long press to flag."}
-        </Text>
-      </ScrollView>
+    <View style={styles.appRoot}>
+      <Animated.View style={[styles.appFadeLayer, { opacity: appOpacity }]}>
+        {appContent}
+      </Animated.View>
+      {showSplash ? <SplashScreen opacity={splashOpacity} /> : null}
     </View>
   );
 }

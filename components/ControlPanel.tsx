@@ -5,6 +5,7 @@ type ControlPanelProps = {
   mineCount: number;
   statusText: string;
   editorMode: boolean;
+  isFocusMode: boolean;
   levelName: string;
   editorTool: "mine" | "reveal";
   boardRows: number;
@@ -12,6 +13,7 @@ type ControlPanelProps = {
   onLevelNameChange: (name: string) => void;
   onNewRandomGame: () => void;
   onToggleEditor: () => void;
+  onToggleFocusMode: () => void;
   onToggleEditorTool: () => void;
   onIncreaseRows: () => void;
   onDecreaseRows: () => void;
@@ -28,6 +30,7 @@ export function ControlPanel({
   mineCount,
   statusText,
   editorMode,
+  isFocusMode,
   levelName,
   editorTool,
   boardRows,
@@ -35,6 +38,7 @@ export function ControlPanel({
   onLevelNameChange,
   onNewRandomGame,
   onToggleEditor,
+  onToggleFocusMode,
   onToggleEditorTool,
   onIncreaseRows,
   onDecreaseRows,
@@ -77,6 +81,13 @@ export function ControlPanel({
         <Pressable style={styles.actionButton} onPress={onLoadLevels}>
           <Text style={styles.resetText}>Load levels</Text>
         </Pressable>
+        {!editorMode && (
+          <Pressable style={styles.actionButton} onPress={onToggleFocusMode}>
+            <Text style={styles.resetText}>
+              {isFocusMode ? "Exit focus" : "Focus mode"}
+            </Text>
+          </Pressable>
+        )}
         <Pressable style={styles.logoutButton} onPress={onLogout}>
           <Text style={styles.resetText}>Log out</Text>
         </Pressable>
