@@ -2,12 +2,14 @@ import { registerRootComponent } from 'expo';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import App from './App';
+import { createElement, type ComponentProps } from 'react';
 
-const Root = () => (
-	<Provider store={store}>
-		<App />
-	</Provider>
-);
+const Root = () =>
+	createElement(
+		Provider,
+		{ store } as ComponentProps<typeof Provider>,
+		createElement(App),
+	);
 
 registerRootComponent(Root);
 
