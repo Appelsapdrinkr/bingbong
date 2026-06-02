@@ -126,6 +126,35 @@ const getAuthErrorMessage = (error: unknown, mode: "login" | "register") => {
   }
 };
 
+const getFirebaseAuthErrorCode = (error: unknown) => {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return String(error.code);
+  }
+
+  return "";
+};
+
+const shouldLogAuthError = (errorCode: string) => {
+  const expectedAuthErrors = new Set([
+    "auth/email-already-in-use",
+    "auth/invalid-email",
+    "auth/weak-password",
+    "auth/invalid-credential",
+    "auth/user-not-found",
+    "auth/wrong-password",
+    "auth/too-many-requests",
+    "auth/network-request-failed",
+    "auth/operation-not-allowed",
+    "auth/api-key-not-valid",
+    "auth/invalid-api-key",
+    "auth/missing-password",
+    "auth/missing-email",
+    "auth/configuration-not-found",
+  ]);
+
+  return !expectedAuthErrors.has(errorCode);
+};
+
 const SplashScreen = ({ opacity }: { opacity: Animated.Value }) => (
   <Animated.View style={[styles.splashContainer, { opacity }]}>
     <View style={styles.splashCard}>
@@ -336,7 +365,10 @@ export default function App() {
       dispatch(setMode("game"));
       dispatch(resetLoginForm());
     } catch (error) {
-      console.error("Login failed", error);
+      const errorCode = getFirebaseAuthErrorCode(error);
+      if (shouldLogAuthError(errorCode)) {
+        console.error("Login failed", error);
+      }
       const authErrorMessage = getAuthErrorMessage(error, "login");
       dispatch(setAuthError(authErrorMessage));
       dispatch(setLoginErrorMessage(authErrorMessage));
@@ -356,7 +388,10 @@ export default function App() {
       dispatch(setShowTutorialModal(true));
       dispatch(resetRegisterForm());
     } catch (error) {
-      console.error("Registration failed", error);
+      const errorCode = getFirebaseAuthErrorCode(error);
+      if (shouldLogAuthError(errorCode)) {
+        console.error("Registration failed", error);
+      }
       const authErrorMessage = getAuthErrorMessage(error, "register");
       dispatch(setAuthError(authErrorMessage));
       dispatch(setRegisterErrorMessage(authErrorMessage));

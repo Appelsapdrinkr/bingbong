@@ -39,8 +39,15 @@ export function LoginScreen({
 
     dispatch(setLoginSubmitting(true));
     dispatch(setLoginErrorMessage(""));
-    await onLogin(email.trim(), password);
-    dispatch(setLoginSubmitting(false));
+
+    try {
+      await onLogin(email.trim(), password);
+    } catch {
+      // Keep UI feedback in-app for unexpected promise failures.
+      dispatch(setLoginErrorMessage("Unable to log in right now. Please try again."));
+    } finally {
+      dispatch(setLoginSubmitting(false));
+    }
   };
 
   const renderPasswordIcon = (isVisible: boolean) => {
