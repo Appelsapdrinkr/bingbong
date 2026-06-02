@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   Text,
   View,
@@ -23,20 +23,53 @@ import { LoginScreen } from "./components/LoginScreen";
 import { RegisterScreen } from "./components/RegisterScreen";
 import { auth, db } from "./firebase";
 import { styles } from "./styles";
-import { Cell, GameStatus } from "./minesweeper.types";
+import { Cell } from "./minesweeper.types";
 import {
-  createBoardFromDesign,
-  createEmptyBoard,
-  generateBoard,
-  revealCells,
-  resetBoardState,
-  checkWin,
   DEFAULT_ROWS,
   DEFAULT_COLS,
+  DEFAULT_MINES,
 } from "./minesweeper.utils";
-
-type AppMode = "game" | "editor" | "selector";
-type AuthScreen = "login" | "register";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import {
+  clearDesign,
+  clearLevelName,
+  resetGameState,
+  revealCell,
+  setBoardForSize,
+  setBoardFromSavedLevel,
+  setFocusMode,
+  setLevelName,
+  setMode,
+  startNewRandomGame,
+  startWithDesign,
+  toggleEditorMode,
+  toggleEditorTool,
+  toggleFlag,
+  toggleFocusMode,
+  toggleMineInEditor,
+} from "./store/gameSlice";
+import {
+  decreaseCols,
+  decreaseRows,
+  increaseCols,
+  increaseRows,
+  resetSettings,
+  setBoardSize,
+} from "./store/settingsSlice";
+import {
+  resetLoginForm,
+  resetRegisterForm,
+  resetAuthUiState,
+  setAuthError,
+  setAuthLoading,
+  setAuthReady,
+  setAuthScreen,
+  setLoginErrorMessage,
+  setRegisterErrorMessage,
+  setShowTutorialModal,
+  setUser,
+} from "./store/authSlice";
+import { setShowSplash } from "./store/uiSlice";
 
 const getAuthErrorMessage = (error: unknown, mode: "login" | "register") => {
   const fallback =
@@ -104,22 +137,27 @@ const SplashScreen = ({ opacity }: { opacity: Animated.Value }) => (
 );
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
+  const dispatch = useAppDispatch();
   const splashOpacity = useRef(new Animated.Value(1)).current;
   const appOpacity = useRef(new Animated.Value(0)).current;
-  const [isAuthReady, setIsAuthReady] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authScreen, setAuthScreen] = useState<AuthScreen>("login");
-  const [board, setBoard] = useState<Cell[][]>(() => generateBoard());
-  const [status, setStatus] = useState<GameStatus>("playing");
-  const [mode, setMode] = useState<AppMode>("game");
-  const [editorMode, setEditorMode] = useState(false);
-  const [isFocusMode, setIsFocusMode] = useState(false);
-  const [showTutorialModal, setShowTutorialModal] = useState(false);
-  const [levelName, setLevelName] = useState("");
-  const [editorTool, setEditorTool] = useState<"mine" | "reveal">("mine");
-  const [boardRows, setBoardRows] = useState(DEFAULT_ROWS);
-  const [boardCols, setBoardCols] = useState(DEFAULT_COLS);
+  const {
+    board,
+    gameStatus,
+    mode,
+    editorMode,
+    isFocusMode,
+    levelName,
+    editorTool,
+  } = useAppSelector((state) => state.game);
+  const { rows: boardRows, cols: boardCols, mines } = useAppSelector(
+    (state) => state.settings,
+  );
+  const { isAuthReady, user, authScreen, showTutorialModal } = useAppSelector(
+    (state) => state.auth,
+  );
+  const { showSplash } = useAppSelector((state) => state.ui);
+
+  const isAuthenticated = Boolean(user);
 
   const mineCount = board.flat().filter((cell) => cell.isMine).length;
 
@@ -138,7 +176,7 @@ export default function App() {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-      ]).start(() => setShowSplash(false));
+      ]).start(() => dispatch(setShowSplash(false)));
     }, 1200);
 
     return () => {
@@ -146,90 +184,72 @@ export default function App() {
       splashOpacity.stopAnimation();
       appOpacity.stopAnimation();
     };
-  }, [appOpacity, splashOpacity]);
+  }, [appOpacity, dispatch, splashOpacity]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(Boolean(user));
-      setIsAuthReady(true);
+      dispatch(
+        setUser(
+          user
+            ? {
+                uid: user.uid,
+                email: user.email,
+              }
+            : null,
+        ),
+      );
+      dispatch(setAuthReady(true));
     });
 
     return unsubscribe;
-  }, []);
+  }, [dispatch]);
 
   const handleNewRandomGame = () => {
-    setBoard(generateBoard(boardRows, boardCols));
-    setStatus("playing");
-    setMode("game");
-    setEditorMode(false);
-    setIsFocusMode(false);
-    setLevelName("");
+    dispatch(startNewRandomGame({ rows: boardRows, cols: boardCols, mines }));
   };
 
   const handleClearDesign = () => {
-    setBoard(createEmptyBoard(boardRows, boardCols));
-    setStatus("playing");
-    setMode("editor");
-    setEditorMode(true);
-    setIsFocusMode(false);
-    setEditorTool("mine");
+    dispatch(clearDesign({ rows: boardRows, cols: boardCols }));
   };
+
   const handleToggleEditorTool = () => {
-    setEditorTool((prev) => (prev === "mine" ? "reveal" : "mine"));
+    dispatch(toggleEditorTool());
   };
 
   const handleIncreaseRows = () => {
     if (boardRows < 12) {
-      const newRows = boardRows + 1;
-      setBoardRows(newRows);
-      setBoard(createEmptyBoard(newRows, boardCols));
+      dispatch(increaseRows());
+      dispatch(setBoardForSize({ rows: boardRows + 1, cols: boardCols }));
     }
   };
 
   const handleDecreaseRows = () => {
     if (boardRows > 4) {
-      const newRows = boardRows - 1;
-      setBoardRows(newRows);
-      setBoard(createEmptyBoard(newRows, boardCols));
+      dispatch(decreaseRows());
+      dispatch(setBoardForSize({ rows: boardRows - 1, cols: boardCols }));
     }
   };
 
   const handleIncreaseCols = () => {
     if (boardCols < 12) {
-      const newCols = boardCols + 1;
-      setBoardCols(newCols);
-      setBoard(createEmptyBoard(boardRows, newCols));
+      dispatch(increaseCols());
+      dispatch(setBoardForSize({ rows: boardRows, cols: boardCols + 1 }));
     }
   };
 
   const handleDecreaseCols = () => {
     if (boardCols > 4) {
-      const newCols = boardCols - 1;
-      setBoardCols(newCols);
-      setBoard(createEmptyBoard(boardRows, newCols));
-    }
-  };
-  const handleToggleEditor = () => {
-    const nextMode = !editorMode;
-    setEditorMode(nextMode);
-    setStatus("playing");
-    setBoard((currentBoard) => resetBoardState(currentBoard));
-    setMode(nextMode ? "editor" : "game");
-    setIsFocusMode(false);
-    if (!nextMode) {
-      setLevelName("");
-    }
-    if (nextMode) {
-      setEditorTool("mine");
+      dispatch(decreaseCols());
+      dispatch(setBoardForSize({ rows: boardRows, cols: boardCols - 1 }));
     }
   };
 
+  const handleToggleEditor = () => {
+    dispatch(toggleEditorMode());
+  };
+
   const handleStartWithDesign = () => {
-    setBoard((previousBoard) => createBoardFromDesign(previousBoard));
-    setStatus("playing");
-    setMode("game");
-    setEditorMode(false);
-    setIsFocusMode(false);
+    dispatch(startWithDesign());
   };
 
   const handleSaveLevel = async () => {
@@ -254,7 +274,7 @@ export default function App() {
     try {
       await setDoc(levelRef, levelData);
       alert("Level saved!");
-      setLevelName("");
+      dispatch(clearLevelName());
     } catch (error) {
       console.error("Failed to save level:", error);
       alert("Failed to save level.");
@@ -262,144 +282,103 @@ export default function App() {
   };
 
   const handleLoadLevels = () => {
-    setIsFocusMode(false);
-    setMode("selector");
+    dispatch(setFocusMode(false));
+    dispatch(setMode("selector"));
   };
 
   const handleSelectLevel = (selectedBoard: Cell[][] | null) => {
     if (selectedBoard) {
-      setBoard(selectedBoard);
-      setBoardRows(selectedBoard.length);
-      setBoardCols(selectedBoard[0]?.length || DEFAULT_COLS);
+      dispatch(setBoardFromSavedLevel(selectedBoard));
+      dispatch(
+        setBoardSize({
+          rows: selectedBoard.length,
+          cols: selectedBoard[0]?.length || DEFAULT_COLS,
+        }),
+      );
     } else {
-      setBoard(generateBoard(boardRows, boardCols));
+      dispatch(startNewRandomGame({ rows: boardRows, cols: boardCols, mines }));
     }
-    setStatus("playing");
-    setMode("game");
-    setEditorMode(false);
-    setIsFocusMode(false);
   };
 
   const handleBackToGame = () => {
-    setIsFocusMode(false);
-    setMode("game");
+    dispatch(setFocusMode(false));
+    dispatch(setMode("game"));
   };
 
   const handleReveal = (row: number, col: number) => {
-    if (editorMode || status !== "playing") return;
-
-    const cell = board[row][col];
-    if (cell.isRevealed || cell.isFlagged) return;
-
-    if (cell.isMine) {
-      setBoard(
-        board.map((rowCells) =>
-          rowCells.map((currentCell) => ({
-            ...currentCell,
-            isRevealed: currentCell.isMine ? true : currentCell.isRevealed,
-          })),
-        ),
-      );
-      setStatus("lost");
-      return;
-    }
-
-    const nextBoard = revealCells(board, row, col);
-    setBoard(nextBoard);
-
-    if (checkWin(nextBoard)) {
-      setStatus("won");
-    }
+    dispatch(revealCell({ row, col }));
   };
 
   const handleFlag = (row: number, col: number) => {
-    if (editorMode || status !== "playing") return;
-
-    setBoard((previousBoard) =>
-      previousBoard.map((rowCells) =>
-        rowCells.map((cell) => {
-          if (cell.row === row && cell.col === col && !cell.isRevealed) {
-            return { ...cell, isFlagged: !cell.isFlagged };
-          }
-          return cell;
-        }),
-      ),
-    );
+    dispatch(toggleFlag({ row, col }));
   };
 
   const handleToggleMine = (row: number, col: number) => {
-    if (!editorMode) return;
-
-    setBoard((previousBoard) => {
-      const nextBoard = previousBoard.map((rowCells) =>
-        rowCells.map((cell) => ({ ...cell })),
-      );
-      const cell = nextBoard[row][col];
-
-      if (editorTool === "mine") {
-        cell.isMine = !cell.isMine;
-        cell.isRevealed = false;
-        cell.isFlagged = false;
-      } else if (editorTool === "reveal") {
-        if (cell.isMine) {
-          // Don't allow revealing mines in editor
-          return previousBoard;
-        }
-        cell.isRevealed = !cell.isRevealed;
-        cell.isFlagged = false;
-      }
-
-      return createBoardFromDesign(nextBoard);
-    });
+    dispatch(toggleMineInEditor({ row, col }));
   };
 
   let statusText = "Game over";
 
   if (editorMode) {
     statusText = "Design mode";
-  } else if (status === "playing") {
+  } else if (gameStatus === "playing") {
     statusText = "Keep going";
-  } else if (status === "won") {
+  } else if (gameStatus === "won") {
     statusText = "You win!";
   }
 
   const handleLogin = async (email: string, password: string) => {
+    dispatch(setAuthLoading(true));
+    dispatch(setAuthError(null));
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      setMode("game");
-      return null;
+      dispatch(setMode("game"));
+      dispatch(resetLoginForm());
     } catch (error) {
       console.error("Login failed", error);
-      return getAuthErrorMessage(error, "login");
+      const authErrorMessage = getAuthErrorMessage(error, "login");
+      dispatch(setAuthError(authErrorMessage));
+      dispatch(setLoginErrorMessage(authErrorMessage));
+      dispatch(setAuthScreen("login"));
+    } finally {
+      dispatch(setAuthLoading(false));
     }
   };
 
   const handleRegister = async (email: string, password: string) => {
+    dispatch(setAuthLoading(true));
+    dispatch(setAuthError(null));
+
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      setMode("game");
-      setShowTutorialModal(true);
-      return null;
+      dispatch(setMode("game"));
+      dispatch(setShowTutorialModal(true));
+      dispatch(resetRegisterForm());
     } catch (error) {
       console.error("Registration failed", error);
-      return getAuthErrorMessage(error, "register");
+      const authErrorMessage = getAuthErrorMessage(error, "register");
+      dispatch(setAuthError(authErrorMessage));
+      dispatch(setRegisterErrorMessage(authErrorMessage));
+      dispatch(setAuthScreen("register"));
+    } finally {
+      dispatch(setAuthLoading(false));
     }
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setAuthScreen("login");
-      setMode("game");
-      setEditorMode(false);
-      setIsFocusMode(false);
-      setShowTutorialModal(false);
-      setStatus("playing");
-      setBoardRows(DEFAULT_ROWS);
-      setBoardCols(DEFAULT_COLS);
-      setBoard(generateBoard(DEFAULT_ROWS, DEFAULT_COLS));
-      setLevelName("");
-      setEditorTool("mine");
+      dispatch(resetAuthUiState());
+      dispatch(resetSettings());
+      dispatch(setShowSplash(false));
+      dispatch(
+        resetGameState({
+          rows: DEFAULT_ROWS,
+          cols: DEFAULT_COLS,
+          mines: DEFAULT_MINES,
+        }),
+      );
     } catch (error) {
       console.error("Logout failed", error);
       alert("Failed to log out. Please try again.");
@@ -421,7 +400,7 @@ export default function App() {
         return (
           <RegisterScreen
             onRegister={handleRegister}
-            onSwitchToLogin={() => setAuthScreen("login")}
+            onSwitchToLogin={() => dispatch(setAuthScreen("login"))}
           />
         );
       }
@@ -429,7 +408,7 @@ export default function App() {
       return (
         <LoginScreen
           onLogin={handleLogin}
-          onSwitchToRegister={() => setAuthScreen("register")}
+          onSwitchToRegister={() => dispatch(setAuthScreen("register"))}
         />
       );
     }
@@ -452,7 +431,9 @@ export default function App() {
           {isFocusMode && !editorMode ? (
             <View style={styles.panel}>
               <Text style={styles.panelText}>Mines: {mineCount}</Text>
-              <Text style={styles.focusModeExit} onPress={() => setIsFocusMode(false)}>
+              <Text
+                style={styles.focusModeExit}
+                onPress={() => dispatch(setFocusMode(false))}>
                 Exit focus
               </Text>
             </View>
@@ -466,10 +447,10 @@ export default function App() {
               editorTool={editorTool}
               boardRows={boardRows}
               boardCols={boardCols}
-              onLevelNameChange={setLevelName}
+              onLevelNameChange={(name) => dispatch(setLevelName(name))}
               onNewRandomGame={handleNewRandomGame}
               onToggleEditor={handleToggleEditor}
-              onToggleFocusMode={() => setIsFocusMode((prev) => !prev)}
+              onToggleFocusMode={() => dispatch(toggleFocusMode())}
               onToggleEditorTool={handleToggleEditorTool}
               onIncreaseRows={handleIncreaseRows}
               onDecreaseRows={handleDecreaseRows}
@@ -492,13 +473,13 @@ export default function App() {
             }
             onCellLongPress={(row, col) => handleFlag(row, col)}
           />
-          {!isFocusMode ? (
+          {isFocusMode ? null : (
             <Text style={styles.hint}>
               {editorMode
                 ? "Design your level, then press Start game with design."
                 : "Tap to reveal, long press to flag."}
             </Text>
-          ) : null}
+          )}
         </ScrollView>
       </View>
     );
@@ -513,7 +494,7 @@ export default function App() {
         animationType="fade"
         transparent
         visible={showTutorialModal}
-        onRequestClose={() => setShowTutorialModal(false)}>
+        onRequestClose={() => dispatch(setShowTutorialModal(false))}>
         <View style={styles.tutorialOverlay}>
           <View style={styles.tutorialCard}>
             <Text style={styles.tutorialTitle}>Quick start</Text>
@@ -531,7 +512,7 @@ export default function App() {
             </Text>
             <Pressable
               style={styles.tutorialButton}
-              onPress={() => setShowTutorialModal(false)}>
+              onPress={() => dispatch(setShowTutorialModal(false))}>
               <Text style={styles.tutorialButtonText}>Start playing</Text>
             </Pressable>
           </View>

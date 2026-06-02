@@ -1,10 +1,19 @@
-import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { styles } from "../styles";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  resetRegisterForm,
+  setLoginEmail,
+  setLoginErrorMessage,
+  setLoginPassword,
+  setLoginPasswordFocused,
+  setLoginPasswordVisible,
+  setLoginSubmitting,
+} from "../store/authSlice";
 
 type LoginScreenProps = {
-  onLogin: (email: string, password: string) => Promise<string | null>;
+  onLogin: (email: string, password: string) => Promise<void>;
   onSwitchToRegister: () => void;
 };
 
@@ -12,28 +21,26 @@ export function LoginScreen({
   onLogin,
   onSwitchToRegister,
 }: Readonly<LoginScreenProps>) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useAppDispatch();
+  const {
+    email,
+    password,
+    isPasswordVisible,
+    isPasswordFocused,
+    isSubmitting,
+    errorMessage,
+  } = useAppSelector((state) => state.auth.loginForm);
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      setErrorMessage("Please enter both email and password.");
+      dispatch(setLoginErrorMessage("Please enter both email and password."));
       return;
     }
 
-    setIsSubmitting(true);
-    setErrorMessage("");
-    const loginError = await onLogin(email.trim(), password);
-
-    if (loginError) {
-      setErrorMessage(loginError);
-    }
-
-    setIsSubmitting(false);
+    dispatch(setLoginSubmitting(true));
+    dispatch(setLoginErrorMessage(""));
+    await onLogin(email.trim(), password);
+    dispatch(setLoginSubmitting(false));
   };
 
   const renderPasswordIcon = (isVisible: boolean) => {
@@ -83,7 +90,7 @@ export function LoginScreen({
           placeholder="Email"
           placeholderTextColor="#A3B4D2"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(value) => dispatch(setLoginEmail(value))}
           keyboardType="email-address"
           autoCapitalize="none"
         />
@@ -93,11 +100,11 @@ export function LoginScreen({
             placeholder="Password"
             placeholderTextColor="#A3B4D2"
             value={password}
-            onChangeText={setPassword}
-            onFocus={() => setIsPasswordFocused(true)}
+            onChangeText={(value) => dispatch(setLoginPassword(value))}
+            onFocus={() => dispatch(setLoginPasswordFocused(true))}
             onBlur={() => {
-              setIsPasswordFocused(false);
-              setIsPasswordVisible(false);
+              dispatch(setLoginPasswordFocused(false));
+              dispatch(setLoginPasswordVisible(false));
             }}
             secureTextEntry={!isPasswordVisible}
           />
@@ -106,7 +113,9 @@ export function LoginScreen({
               style={styles.passwordToggleButton}
               accessibilityRole="button"
               accessibilityLabel={isPasswordVisible ? "Hide password" : "Show password"}
-              onPress={() => setIsPasswordVisible((visible) => !visible)}>
+              onPress={() =>
+                dispatch(setLoginPasswordVisible(!isPasswordVisible))
+              }>
               {renderPasswordIcon(isPasswordVisible)}
             </Pressable>
           ) : null}
@@ -123,7 +132,12 @@ export function LoginScreen({
           </Text>
         </Pressable>
 
-        <Pressable style={styles.authSwitchButton} onPress={onSwitchToRegister}>
+        <Pressable
+          style={styles.authSwitchButton}
+          onPress={() => {
+            dispatch(resetRegisterForm());
+            onSwitchToRegister();
+          }}>
           <Text style={styles.authSwitchText}>No account? Create one</Text>
         </Pressable>
       </View>

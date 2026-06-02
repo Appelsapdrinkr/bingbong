@@ -1,10 +1,22 @@
-import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import { styles } from "../styles";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import {
+  resetLoginForm,
+  setRegisterConfirmPassword,
+  setRegisterConfirmPasswordFocused,
+  setRegisterConfirmPasswordVisible,
+  setRegisterEmail,
+  setRegisterErrorMessage,
+  setRegisterPassword,
+  setRegisterPasswordFocused,
+  setRegisterPasswordVisible,
+  setRegisterSubmitting,
+} from "../store/authSlice";
 
 type RegisterScreenProps = {
-  onRegister: (email: string, password: string) => Promise<string | null>;
+  onRegister: (email: string, password: string) => Promise<void>;
   onSwitchToLogin: () => void;
 };
 
@@ -12,41 +24,39 @@ export function RegisterScreen({
   onRegister,
   onSwitchToLogin,
 }: Readonly<RegisterScreenProps>) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
-  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const dispatch = useAppDispatch();
+  const {
+    email,
+    password,
+    confirmPassword,
+    isPasswordVisible,
+    isConfirmPasswordVisible,
+    isPasswordFocused,
+    isConfirmPasswordFocused,
+    isSubmitting,
+    errorMessage,
+  } = useAppSelector((state) => state.auth.registerForm);
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setErrorMessage("Please complete all fields.");
+      dispatch(setRegisterErrorMessage("Please complete all fields."));
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match.");
+      dispatch(setRegisterErrorMessage("Passwords do not match."));
       return;
     }
 
     if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters.");
+      dispatch(setRegisterErrorMessage("Password must be at least 6 characters."));
       return;
     }
 
-    setIsSubmitting(true);
-    setErrorMessage("");
-    const registerError = await onRegister(email.trim(), password);
-
-    if (registerError) {
-      setErrorMessage(registerError);
-    }
-
-    setIsSubmitting(false);
+    dispatch(setRegisterSubmitting(true));
+    dispatch(setRegisterErrorMessage(""));
+    await onRegister(email.trim(), password);
+    dispatch(setRegisterSubmitting(false));
   };
 
   const renderPasswordIcon = (isVisible: boolean) => {
@@ -96,7 +106,7 @@ export function RegisterScreen({
           placeholder="Email"
           placeholderTextColor="#A3B4D2"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(value) => dispatch(setRegisterEmail(value))}
           keyboardType="email-address"
           autoCapitalize="none"
         />
@@ -106,11 +116,11 @@ export function RegisterScreen({
             placeholder="Password"
             placeholderTextColor="#A3B4D2"
             value={password}
-            onChangeText={setPassword}
-            onFocus={() => setIsPasswordFocused(true)}
+            onChangeText={(value) => dispatch(setRegisterPassword(value))}
+            onFocus={() => dispatch(setRegisterPasswordFocused(true))}
             onBlur={() => {
-              setIsPasswordFocused(false);
-              setIsPasswordVisible(false);
+              dispatch(setRegisterPasswordFocused(false));
+              dispatch(setRegisterPasswordVisible(false));
             }}
             secureTextEntry={!isPasswordVisible}
           />
@@ -119,7 +129,9 @@ export function RegisterScreen({
               style={styles.passwordToggleButton}
               accessibilityRole="button"
               accessibilityLabel={isPasswordVisible ? "Hide password" : "Show password"}
-              onPress={() => setIsPasswordVisible((visible) => !visible)}>
+              onPress={() =>
+                dispatch(setRegisterPasswordVisible(!isPasswordVisible))
+              }>
               {renderPasswordIcon(isPasswordVisible)}
             </Pressable>
           ) : null}
@@ -130,11 +142,11 @@ export function RegisterScreen({
             placeholder="Confirm password"
             placeholderTextColor="#A3B4D2"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            onFocus={() => setIsConfirmPasswordFocused(true)}
+            onChangeText={(value) => dispatch(setRegisterConfirmPassword(value))}
+            onFocus={() => dispatch(setRegisterConfirmPasswordFocused(true))}
             onBlur={() => {
-              setIsConfirmPasswordFocused(false);
-              setIsConfirmPasswordVisible(false);
+              dispatch(setRegisterConfirmPasswordFocused(false));
+              dispatch(setRegisterConfirmPasswordVisible(false));
             }}
             secureTextEntry={!isConfirmPasswordVisible}
           />
@@ -147,7 +159,11 @@ export function RegisterScreen({
                   ? "Hide confirm password"
                   : "Show confirm password"
               }
-              onPress={() => setIsConfirmPasswordVisible((visible) => !visible)}>
+              onPress={() =>
+                dispatch(
+                  setRegisterConfirmPasswordVisible(!isConfirmPasswordVisible),
+                )
+              }>
               {renderPasswordIcon(isConfirmPasswordVisible)}
             </Pressable>
           ) : null}
@@ -164,7 +180,12 @@ export function RegisterScreen({
           </Text>
         </Pressable>
 
-        <Pressable style={styles.authSwitchButton} onPress={onSwitchToLogin}>
+        <Pressable
+          style={styles.authSwitchButton}
+          onPress={() => {
+            dispatch(resetLoginForm());
+            onSwitchToLogin();
+          }}>
           <Text style={styles.authSwitchText}>Already have an account? Log in</Text>
         </Pressable>
       </View>
