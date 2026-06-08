@@ -59,6 +59,12 @@ const SignInHeaderTitle = () => <HeaderTitle title="Sign In" />;
 const RegisterHeaderTitle = () => <HeaderTitle title="Register" />;
 const GameHeaderTitle = () => <HeaderTitle title="Minesweeper" />;
 const LevelsHeaderTitle = () => <HeaderTitle title="Saved Levels" />;
+const GameTabIcon = ({ color, size }: { color: string; size: number }) => (
+  <Text style={{ color, fontSize: size }}>🎮</Text>
+);
+const LevelsTabIcon = ({ color, size }: { color: string; size: number }) => (
+  <Text style={{ color, fontSize: size }}>📚</Text>
+);
 
 type AuthenticatedTabsProps = Pick<
   AppNavigatorProps,
@@ -78,10 +84,17 @@ function AuthenticatedTabs({
         headerTintColor: "#F8F8F8",
         headerBackground: HeaderBackground,
         headerTitleAlign: "center",
+        tabBarActiveTintColor: "#3C86F0",
+        tabBarInactiveTintColor: "#8BA3C7",
+        tabBarStyle: { backgroundColor: "#0A1630" },
       }}>
       <Tab.Screen
         name="GameTab"
-        options={{ headerTitle: GameHeaderTitle }}>
+        options={{
+          headerTitle: GameHeaderTitle,
+          tabBarLabel: "Game",
+          tabBarIcon: GameTabIcon,
+        }}>
         {({ navigation }) => (
           <GameScreen
             {...gameScreenProps}
@@ -94,7 +107,11 @@ function AuthenticatedTabs({
       </Tab.Screen>
       <Tab.Screen
         name="LevelsTab"
-        options={{ headerTitle: LevelsHeaderTitle }}>
+        options={{
+          headerTitle: LevelsHeaderTitle,
+          tabBarLabel: "Levels",
+          tabBarIcon: LevelsTabIcon,
+        }}>
         {({ navigation }) => (
           <LevelSelector
             onSelectLevel={(board) => {
