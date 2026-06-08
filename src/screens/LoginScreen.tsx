@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Keyboard,
   Platform,
 } from "react-native";
@@ -76,13 +75,11 @@ export function LoginScreen({
 
   return (
     <KeyboardAvoidingView
-      style={styles.loginContainer}
+      style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.loginContainer}>
-          <TouchableWithoutFeedback accessible={false}>
-            <View style={styles.loginCard}>
+      <Pressable style={styles.loginContainer} onPress={Keyboard.dismiss}>
+        <Pressable style={styles.loginCard} onPress={() => {}}>
         <Text style={styles.loginTitle}>Welcome back</Text>
         <Text style={styles.loginSubtitle}>Sign in to start your next game.</Text>
 
@@ -178,10 +175,8 @@ export function LoginScreen({
           }}>
           <Text style={styles.authSwitchText}>No account? Create one</Text>
         </Pressable>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+        </Pressable>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }

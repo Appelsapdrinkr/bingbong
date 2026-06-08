@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Keyboard,
   Platform,
 } from "react-native";
@@ -81,13 +80,11 @@ export function RegisterScreen({
 
   return (
     <KeyboardAvoidingView
-      style={styles.loginContainer}
+      style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.loginContainer}>
-          <TouchableWithoutFeedback accessible={false}>
-            <View style={styles.loginCard}>
+      <Pressable style={styles.loginContainer} onPress={Keyboard.dismiss}>
+        <Pressable style={styles.loginCard} onPress={() => {}}>
         <Text style={styles.loginTitle}>Create account</Text>
         <Text style={styles.loginSubtitle}>Register to start playing Minesweeper.</Text>
 
@@ -216,10 +213,8 @@ export function RegisterScreen({
           }}>
           <Text style={styles.authSwitchText}>Already have an account? Log in</Text>
         </Pressable>
-            </View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+        </Pressable>
+      </Pressable>
     </KeyboardAvoidingView>
   );
 }
