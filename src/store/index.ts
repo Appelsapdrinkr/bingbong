@@ -1,4 +1,4 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   persistReducer,
@@ -22,6 +22,8 @@ const appReducer = {
   ui: uiReducer,
 };
 
+const rootReducer = combineReducers(appReducer);
+
 type AppReducerState = {
   game: ReturnType<typeof gameReducer>;
   auth: ReturnType<typeof authReducer>;
@@ -35,7 +37,7 @@ const persistConfig = {
   whitelist: ["game", "settings", "ui"],
 } as const;
 
-const persistedReducer = persistReducer<AppReducerState>(persistConfig, appReducer);
+const persistedReducer = persistReducer<AppReducerState>(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
