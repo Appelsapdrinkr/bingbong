@@ -77,7 +77,8 @@ export function LoginScreen({
   return (
     <KeyboardAvoidingView
       style={styles.loginContainer}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.loginCard}>
         <Text style={styles.loginTitle}>Welcome back</Text>
