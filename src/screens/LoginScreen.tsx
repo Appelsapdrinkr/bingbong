@@ -80,7 +80,9 @@ export function LoginScreen({
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 24 : 0}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.loginCard}>
+        <View style={styles.loginContainer}>
+          <TouchableWithoutFeedback accessible={false}>
+            <View style={styles.loginCard}>
         <Text style={styles.loginTitle}>Welcome back</Text>
         <Text style={styles.loginSubtitle}>Sign in to start your next game.</Text>
 
@@ -176,6 +178,8 @@ export function LoginScreen({
           }}>
           <Text style={styles.authSwitchText}>No account? Create one</Text>
         </Pressable>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
