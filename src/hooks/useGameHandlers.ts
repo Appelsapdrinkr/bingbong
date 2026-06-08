@@ -1,7 +1,7 @@
 import { collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-import type { AppNavigatorProps } from "../components/AppNavigator";
-import type { GameScreenProps } from "../components/GameScreen";
+import type { AppNavigatorProps } from "../navigation/AppNavigator";
+import type { GameScreenProps } from "../screens/GameScreen";
 import { auth, db } from "../firebase";
 import { Cell } from "../minesweeper.types";
 import {

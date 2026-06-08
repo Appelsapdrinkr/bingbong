@@ -1,7 +1,7 @@
 import { Animated, View } from "react-native";
 import type { AppController } from "../hooks/useAppController";
 import { styles } from "../styles";
-import { AppNavigator } from "./AppNavigator";
+import { AppNavigator } from "../navigation/AppNavigator";
 import { SplashScreen } from "./SplashScreen";
 import { TutorialModal } from "./TutorialModal";
 

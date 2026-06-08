@@ -1,4 +1,4 @@
-import { Modal, Pressable, Text, View } from "react-native";
+import { Modal, Pressable, Text } from "react-native";
 import { styles } from "../styles";
 
 type TutorialModalProps = Readonly<{
@@ -13,8 +13,8 @@ export function TutorialModal({ visible, onClose }: TutorialModalProps) {
       transparent
       visible={visible}
       onRequestClose={onClose}>
-      <View style={styles.tutorialOverlay}>
-        <View style={styles.tutorialCard}>
+      <Pressable style={styles.tutorialOverlay} onPress={onClose}>
+        <Pressable style={styles.tutorialCard} onPress={() => {}}>
           <Text style={styles.tutorialTitle}>Quick start</Text>
           <Text style={styles.tutorialText}>
             Reveal all safe cells without hitting a mine.
@@ -31,8 +31,8 @@ export function TutorialModal({ visible, onClose }: TutorialModalProps) {
           <Pressable style={styles.tutorialButton} onPress={onClose}>
             <Text style={styles.tutorialButtonText}>Start playing</Text>
           </Pressable>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

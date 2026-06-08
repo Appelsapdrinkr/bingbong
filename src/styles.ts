@@ -8,6 +8,32 @@ export const styles = StyleSheet.create({
   appFadeLayer: {
     flex: 1,
   },
+  navHeaderBackground: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  navHeaderBackgroundDim: {
+    flex: 1,
+    backgroundColor: "rgba(10, 22, 48, 0.45)",
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  navHeaderTitleWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navHeaderIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+  },
+  navHeaderTitle: {
+    color: "#F8F8F8",
+    fontSize: 18,
+    fontFamily: "Bangers_400Regular",
+    letterSpacing: 0.8,
+  },
   tutorialOverlay: {
     flex: 1,
     backgroundColor: "rgba(5, 12, 27, 0.72)",
@@ -68,9 +94,15 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 22,
     alignItems: "center",
   },
+  splashImage: {
+    width: 120,
+    height: 72,
+    marginBottom: 10,
+  },
   splashTitle: {
     fontSize: 36,
-    fontWeight: "800",
+    fontFamily: "Bangers_400Regular",
+    letterSpacing: 1.2,
     color: "#F8F8F8",
     marginBottom: 6,
   },
@@ -95,7 +127,8 @@ export const styles = StyleSheet.create({
   },
   loginTitle: {
     fontSize: 34,
-    fontWeight: "800",
+    fontFamily: "Bangers_400Regular",
+    letterSpacing: 0.8,
     color: "#F8F8F8",
     marginBottom: 8,
   },
@@ -242,7 +275,8 @@ export const styles = StyleSheet.create({
   },
   pageHeaderTitle: {
     fontSize: 28,
-    fontWeight: "800",
+    fontFamily: "Bangers_400Regular",
+    letterSpacing: 0.8,
     color: "#F8F8F8",
     textAlign: "center",
   },

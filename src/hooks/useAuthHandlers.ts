@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import type { AppNavigatorProps } from "../components/AppNavigator";
+import type { AppNavigatorProps } from "../navigation/AppNavigator";
 import { auth } from "../firebase";
 import {
   resetLoginForm,

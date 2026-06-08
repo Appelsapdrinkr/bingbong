@@ -29,7 +29,6 @@ export const auth = (() => {
   try {
     const {
       browserLocalPersistence,
-      getAuth,
       initializeAuth,
     } = FirebaseAuth;
 

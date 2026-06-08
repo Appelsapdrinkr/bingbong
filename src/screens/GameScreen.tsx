@@ -2,9 +2,9 @@ import { ScrollView, Text, View } from "react-native";
 import { Cell } from "../minesweeper.types";
 import type { EditorTool } from "../store/gameSlice";
 import { styles } from "../styles";
-import { Board } from "./Board";
-import { ControlPanel } from "./ControlPanel";
-import { PageHeader } from "./PageHeader";
+import { Board } from "../components/Board";
+import { ControlPanel } from "../components/ControlPanel";
+import { PageHeader } from "../components/PageHeader";
 
 export type GameScreenProps = Readonly<{
   board: Cell[][];

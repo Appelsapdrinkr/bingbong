@@ -17,18 +17,18 @@ export function useAppBootstrap(
       Animated.parallel([
         Animated.timing(splashOpacity, {
           toValue: 0,
-          duration: 450,
+          duration: 300,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(appOpacity, {
           toValue: 1,
-          duration: 450,
+          duration: 300,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
       ]).start(() => dispatch(setShowSplash(false)));
-    }, 1200);
+    }, 2000);
 
     return () => {
       clearTimeout(holdTimer);

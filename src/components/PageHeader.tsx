@@ -6,7 +6,7 @@ export const PageHeader = () => {
     <View style={styles.pageHeaderWrapper}>
       <View style={styles.pageHeaderImageArea}>
         <Image
-          source={require("../assets/icon.png")}
+          source={require("../../assets/icon.png")}
           style={styles.pageHeaderImage}
           resizeMode="contain"
         />
